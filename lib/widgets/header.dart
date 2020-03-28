@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-AppBar header({bool isAppTitle = false, String titleText}) {
+AppBar header({bool isAppTitle = false, String titleText, removeBackButton = false}) {
   return AppBar(
+    automaticallyImplyLeading: removeBackButton ?false:true,
     title: Text(
+      
      isAppTitle ? 'Sociolizer': titleText,
       style: TextStyle(
         color: Colors.white,
