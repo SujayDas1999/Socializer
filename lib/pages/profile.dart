@@ -20,6 +20,7 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  bool isFollowing = false;
   final String currentUserId = currentUser?.id;
   String postOrientation = "grid";
   bool isLoading = false;
@@ -76,7 +77,10 @@ class _ProfileState extends State<Profile> {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => EditProfile(currentUserId: currentUserId)));
+            builder: (context) => EditProfile(currentUserId: currentUserId
+            ),
+            ),
+            );
   }
 
   Container buildButton({String text, Function function}) {
@@ -90,15 +94,15 @@ class _ProfileState extends State<Profile> {
           child: Text(
             text,
             style: TextStyle(
-              color: Colors.white,
+              color: isFollowing ? Colors.black:Colors.white,
               fontWeight: FontWeight.bold,
             ),
           ),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: Colors.blue,
+            color: isFollowing?Colors.white:Colors.blue,
             border: Border.all(
-              color: Colors.blue,
+              color: isFollowing?Colors.grey:Colors.blue,
             ),
             borderRadius: BorderRadius.circular(5.0),
           ),
@@ -112,7 +116,24 @@ class _ProfileState extends State<Profile> {
     bool isProfileOwner = currentUserId == widget.profileId;
     if (isProfileOwner) {
       return buildButton(text: "Edit Profile", function: editProfile);
+    } else if (isFollowing){
+      return buildButton(
+        text:"unfollow", function: handleUnFollowUser,
+      );
+    } else if(!isFollowing){
+      return buildButton(
+        text: "Follow",
+        function: handleFollowUser,
+      );
     }
+  }
+
+
+  handleFollowUser(){
+
+  }
+  handleUnFollowUser(){
+
   }
 
   buildProfileHeader() {
@@ -196,71 +217,71 @@ class _ProfileState extends State<Profile> {
   buildProfilePosts() {
     if (isLoading) {
       return circularProgress();
-    }else if(posts.isEmpty){
+    } else if (posts.isEmpty) {
       return Container(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          SvgPicture.asset('assets/images/no_content.svg', height: 160.0),
-          Padding(
-            padding: EdgeInsets.only(top: 20.0),
-            child:  Text(
-                  "No Posts",
-                  style: TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 40.0,
-                    fontWeight: FontWeight.bold
-                  ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            SvgPicture.asset('assets/images/no_content.svg', height: 100.0),
+            Padding(
+              padding: EdgeInsets.only(top: 20.0),
+              child: Text(
+                "No Posts",
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 40.0,
+                  fontWeight: FontWeight.bold,
                 ),
-          ),
-        ],
-      ),
-    );
-    }
-
-
-    else if(postOrientation=="grid"){
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (postOrientation == "grid") {
       List<GridTile> gridTiles = [];
-    posts.forEach((post){
-      gridTiles.add(GridTile(child:PostTile(post)));
-    });
-    return GridView.count(crossAxisCount: 3,childAspectRatio: 1.0,
-    mainAxisSpacing: 1.5,
-    crossAxisSpacing: 1.5,
-    shrinkWrap: true,
-    physics: NeverScrollableScrollPhysics(),
-    children: gridTiles);
-    } else if(postOrientation == "list"){
-        return Column(
-      children: posts,
-    );
+      posts.forEach((post) {
+        gridTiles.add(GridTile(child: PostTile(post)));
+      });
+      return GridView.count(
+        crossAxisCount: 3,
+        childAspectRatio: 1.0,
+        mainAxisSpacing: 1.5,
+        crossAxisSpacing: 1.5,
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        children: gridTiles,
+      );
+    } else if (postOrientation == "list") {
+      return Column(
+        children: posts,
+      );
     }
   }
 
-  setPostOrientation(String postOrientation){
-    setState((){
+  setPostOrientation(String postOrientation) {
+    setState(() {
       this.postOrientation = postOrientation;
     });
   }
 
-  buildTogglePostOrientation(){
+  buildTogglePostOrientation() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
         IconButton(
-          onPressed: (){
-            setPostOrientation("grid");
-          },
+          onPressed: () => setPostOrientation("grid"),
           icon: Icon(Icons.grid_on),
-          color: postOrientation == 'grid' ? Theme.of(context).primaryColor:Colors.grey ,
+          color: postOrientation == 'grid'
+              ? Theme.of(context).primaryColor
+              : Colors.grey,
         ),
         IconButton(
+          onPressed: () => setPostOrientation("list"),
           icon: Icon(Icons.list),
-          color:postOrientation == "list" ? Theme.of(context).primaryColor:Colors.grey,
-          onPressed: (){
-            setPostOrientation("list");
-          },  
-          ),
+          color: postOrientation == 'list'
+              ? Theme.of(context).primaryColor
+              : Colors.grey,
+        ),
       ],
     );
   }
@@ -273,7 +294,7 @@ class _ProfileState extends State<Profile> {
         children: <Widget>[
           buildProfileHeader(),
           Divider(),
-          buildTogglePostOrientation(), 
+          buildTogglePostOrientation(),
           Divider(
             height: 0.0,
           ),
