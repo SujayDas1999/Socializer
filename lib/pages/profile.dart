@@ -25,12 +25,48 @@ class _ProfileState extends State<Profile> {
   String postOrientation = "grid";
   bool isLoading = false;
   int postCount = 0;
+  int followerCount = 0;
+  int followingCount = 0;
   List<Post> posts = [];
 
   @override
   void initState() {
     super.initState();
     getProfilePosts();
+    getFollowers();
+    getFollowing();
+    checkIfFollowing();
+  }
+
+  checkIfFollowing() async {
+   DocumentSnapshot doc =  await followersRef
+    .document(widget.profileId)
+    .collection("userFollowers")
+    .document(currentUserId)
+    .get();
+    setState((){
+      isFollowing = doc.exists;
+    });
+  }
+
+  getFollowers()async{
+    QuerySnapshot snapshot = await followersRef
+    .document(widget.profileId)
+    .collection("userFollowers")
+    .getDocuments();
+
+    setState(() {
+      followerCount = snapshot.documents.length;
+    });
+  }
+  getFollowing() async{
+    QuerySnapshot snapshot =  await followingRef
+    .document(widget.profileId)
+    .collection("userFollowing")
+    .getDocuments();
+    setState(() {
+      followingCount = snapshot.documents.length;
+    });
   }
 
   getProfilePosts() async {
@@ -130,11 +166,72 @@ class _ProfileState extends State<Profile> {
 
 
   handleFollowUser(){
+setState(() {
+      isFollowing = true;
+    });
+    followersRef
+    .document(widget.profileId)
+    .collection('userFollowers')
+    .document(currentUserId)
+    .setData({});
+    followingRef
+    .document(currentUserId)
+    .collection("userFollowing")
+    .document(widget.profileId)
+    .setData({});
+
+  activityFeedRef
+  .document(widget.profileId)
+  .collection("feedItems")
+  .document(currentUserId)
+  .setData({
+    "type":"follow",
+    "ownerId":widget.profileId,
+    "username":currentUser.username,
+    "userId":currentUserId,
+     "userProfileImg":currentUser.photoUrl,
+     "timestamp":timestamp,
+
+  });
 
   }
   handleUnFollowUser(){
+    setState(() {
+      isFollowing = false;
+    });
+    followersRef
+    .document(widget.profileId)
+    .collection('userFollowers')
+    .document(currentUserId)
+    .get().then((doc){
+      if(doc.exists){
+        doc.reference.delete();
+      }
+    });
+
+    followingRef
+    .document(currentUserId)
+    .collection("userFollowing")
+    .document(widget.profileId)
+    .get().then((doc){
+      if(doc.exists){
+        doc.reference.delete();
+      }
+    });
+
+    
+  activityFeedRef
+  .document(widget.profileId)
+  .collection("feedItems")
+  .document(currentUserId)
+  .get().then((doc){
+      if(doc.exists){
+        doc.reference.delete();
+      }
+    });
 
   }
+
 
   buildProfileHeader() {
     return FutureBuilder(
@@ -164,8 +261,8 @@ class _ProfileState extends State<Profile> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
                             buildCountColumn("posts", postCount),
-                            buildCountColumn("followers", 0),
-                            buildCountColumn("following", 0),
+                            buildCountColumn("followers", followerCount),
+                            buildCountColumn("following", followingCount),
                           ],
                         ),
                         Row(
@@ -304,3 +401,4 @@ class _ProfileState extends State<Profile> {
     );
   }
 }
+
